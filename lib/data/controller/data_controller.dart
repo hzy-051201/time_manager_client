@@ -45,15 +45,20 @@ class DataController extends GetxController {
   User? get user => _rawUser.value;
 
   // List<int> rawGroupIds = [0];
-  Map<int, Group> rawGroup = {0: Group(title: "默认分组", icon: "📢", taskIds: [], updateTimestamp: 1)};
+  Map<int, Group> rawGroup = {
+    0: Group(title: "默认分组", icon: "📢", taskIds: [], updateTimestamp: 1)
+  };
   Map<int, Task> rawTask = {};
   final _rawUser = Rx<User?>(null);
 
   // 数据同步->本地更新后 需要提交的数据
   // final List<(int id, TsData data)> _needSubbmit = [];
-  StreamController<(int id, TsData data)> _needSubbmitDataController = StreamController();
-  StreamController<(int, int, Task?)> _taskStreamController = StreamController();
-  StreamController<(int, int, Group?)> _groupStreamController = StreamController();
+  StreamController<(int id, TsData data)> _needSubbmitDataController =
+      StreamController();
+  StreamController<(int, int, Task?)> _taskStreamController =
+      StreamController();
+  StreamController<(int, int, Group?)> _groupStreamController =
+      StreamController();
 
   final syncing = true.obs;
 
@@ -69,7 +74,8 @@ class DataController extends GetxController {
   }
 
   // Iterable<Task> get currentGroupTasks => currentGroup.taskIds.map((e) => rawTask[e] ?? Task.loading());
-  Iterable<Task> get currentGroupTasks => currentGroup.taskIds.map((e) => rawTask[e] ?? Task.loading());
+  Iterable<Task> get currentGroupTasks =>
+      currentGroup.taskIds.map((e) => rawTask[e] ?? Task.loading());
 
   final _rawRadom = Random();
   int getRawNewIndexNo<T extends TsData>() {
@@ -83,7 +89,8 @@ class DataController extends GetxController {
     return k;
   }
 
-  int? getRawIndexNo<T extends TsData>(T d) => _getRaw<T>().entries.where((e) => e.value == d).singleOrNull?.key;
+  int? getRawIndexNo<T extends TsData>(T d) =>
+      _getRaw<T>().entries.where((e) => e.value == d).singleOrNull?.key;
 
   // 添加任务
   void addTask(Task task, [Group? group]) {
@@ -107,7 +114,8 @@ class DataController extends GetxController {
   void editTask(Task oldTask, Task newTask, [Group? group]) {
     group ??= currentGroup;
 
-    int? index = rawTask.entries.where((e) => e.value == oldTask).singleOrNull?.key;
+    int? index =
+        rawTask.entries.where((e) => e.value == oldTask).singleOrNull?.key;
     if (index == null) {
       // 不存在rawTask中  -> 新建任务
       index = getRawNewIndexNo<Task>();
@@ -126,7 +134,9 @@ class DataController extends GetxController {
 
   // 修改任务状态
   void changeTaskStatus(Task task, [TaskStatus? status]) {
-    status ??= task.status == TaskStatus.finished ? TaskStatus.unfinished : TaskStatus.finished;
+    status ??= task.status == TaskStatus.finished
+        ? TaskStatus.unfinished
+        : TaskStatus.finished;
     task.status = status;
     task.updateTimestamp();
 
@@ -176,12 +186,16 @@ class DataController extends GetxController {
   final _deviceLocation = Location();
   Future<double?> getTaskDistance(Task task) async {
     try {
-      final locr = await _deviceLocation.getLocation().timeout(Duration(seconds: 10));
+      final locr =
+          await _deviceLocation.getLocation().timeout(Duration(seconds: 10));
       logger.d("r loc: $locr");
       if (locr.latitude == null || locr.longitude == null) return null;
 
-      final loc = CoordinateHelper.wgs84ToGcj02(locr.latitude!, locr.longitude!);
-      if (task.latLng != null) return CoordinateHelper.calculateDistance(loc, task.latLng!);
+      final loc =
+          CoordinateHelper.wgs84ToGcj02(locr.latitude!, locr.longitude!);
+      if (task.latLng != null) {
+        return CoordinateHelper.calculateDistance(loc, task.latLng!);
+      }
 
       if (task.location != null) {
         try {
@@ -255,7 +269,8 @@ class DataController extends GetxController {
   // 修改当前组
   void changeCurrentGroup(Group group) {
     // currentGroup.value = group;
-    currentGroupIndex.value = rawGroup.entries.where((e) => e.value == group).single.key;
+    currentGroupIndex.value =
+        rawGroup.entries.where((e) => e.value == group).single.key;
     _onDataChanged();
   }
 
@@ -290,7 +305,9 @@ class DataController extends GetxController {
         user: Helper.if_(needUserInfo, user?.toProto()),
       );
 
-  Future<File?> saveDownloadDirectory() => LocalStorage.instance?.writeToDownloadDirectory(toProto()) ?? Future.value(null);
+  Future<File?> saveDownloadDirectory() =>
+      LocalStorage.instance?.writeToDownloadDirectory(toProto()) ??
+      Future.value(null);
 
   String saveAsText() => Base64Encoder().convert(toProto().writeToBuffer());
 
@@ -405,7 +422,9 @@ class DataController extends GetxController {
   void onDbChange<T extends TsData>((int, int, T?) d) {
     // logger.t("ddd: onDbChange: $d");
     final rawMap = _getRaw<T>();
-    if (rawMap.containsKey(d.$1) && d.$2 <= rawMap[d.$1]!.updateTimestampAt) return;
+    if (rawMap.containsKey(d.$1) && d.$2 <= rawMap[d.$1]!.updateTimestampAt) {
+      return;
+    }
     logger.t("ddd willDown $d");
     // print("ddd ts:, ${(d.$3 as Task).status}");
 
@@ -459,10 +478,12 @@ class DataController extends GetxController {
     }
 
     logger.t("$T cloud new: $cloudNewIds");
-    logger.t("$T local new: $localNewIds, ${localNewIds.map((e) => rawMap[e]?.updateTimestampAt).join(",")}");
+    logger.t(
+        "$T local new: $localNewIds, ${localNewIds.map((e) => rawMap[e]?.updateTimestampAt).join(",")}");
 
     // 2.1 更新本地数据
-    final it = await RemoteDb.instance.getData<T>(user!.id, cloudNewIds.toList());
+    final it =
+        await RemoteDb.instance.getData<T>(user!.id, cloudNewIds.toList());
     rawMap.cover(it);
 
     // 2.2 检测未分组数据转移至默认分组
@@ -479,7 +500,8 @@ class DataController extends GetxController {
       }
     }
     // 3. 更新数据库数据
-    await RemoteDb.instance.update<T>(user!.id, {for (var i in localNewIds) i: rawMap[i]!});
+    await RemoteDb.instance
+        .update<T>(user!.id, {for (var i in localNewIds) i: rawMap[i]!});
 
     // 4. 通知
     _onDataChanged();
@@ -506,7 +528,9 @@ class DataController extends GetxController {
   // 获取用户Prompt
   Future<List<String>> getUserPrompt([bool forceFromCloud = false]) async {
     if (user == null) return [];
-    if (!forceFromCloud && user!.prompt != null) return user!.prompt!.split("\n");
+    if (!forceFromCloud && user!.prompt != null) {
+      return user!.prompt!.split("\n");
+    }
 
     final r = await RemoteDb.instance.getUserPrompt(user!.id);
     _rawUser.update((u) {
@@ -535,7 +559,8 @@ class DataController extends GetxController {
     final w = List.generate(p.length, (i) => "${i + 1}. ${p[i]}");
     w.add("当前的时间是: ${DateTime.now().toIso8601String()}");
     final m = w.join("\n\n");
-    final s = "${Constant.aiSystemPromptForAddTask} \n\n 此外，用户提供如下信息可以参考: \n\n $m";
+    final s =
+        "${Constant.aiSystemPromptForAddTask} \n\n 此外，用户提供如下信息可以参考: \n\n $m";
 
     return NetworkAi.getTaskFromText(text, systemPrompt: s);
   }
@@ -554,7 +579,8 @@ class DataController extends GetxController {
   }
 
   final _reTask = RegExp(r"{(?<name>\S*?)}\[\[(?<no>[0-9]+)\]\]");
-  Future<List<(String text, int? taskId)>> getTaskOverallSummaryWithTask([bool forceAsk = false]) async {
+  Future<List<(String text, int? taskId)>> getTaskOverallSummaryWithTask(
+      [bool forceAsk = false]) async {
     final r = await getTaskOverallSummary(forceAsk);
     if (r == null) return [];
 
@@ -581,10 +607,14 @@ class DataController extends GetxController {
   }
 
   // 网页爬虫
-  Future<void> submitWebCrawler(String name, String summary, String code) => RemoteDb.instance.submitWebCrawler(name, summary, code, user?.id);
-  Future<(List<WebCrawlerWeb>, Map<int, int>)> getWebCrawlerWebsAndRelvance() async {
+  Future<void> submitWebCrawler(String name, String summary, String code) =>
+      RemoteDb.instance.submitWebCrawler(name, summary, code, user?.id);
+  Future<(List<WebCrawlerWeb>, Map<int, int>)>
+      getWebCrawlerWebsAndRelvance() async {
     final lw = await RemoteDb.instance.getWebCrawlerWebs();
-    final mr = user == null ? <int, int>{} : await RemoteDb.instance.getWebCrawlerRelvance(user!.id);
+    final mr = user == null
+        ? <int, int>{}
+        : await RemoteDb.instance.getWebCrawlerRelvance(user!.id);
     return (lw, mr);
   }
 }

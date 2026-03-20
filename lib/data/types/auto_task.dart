@@ -10,7 +10,8 @@ class AutoTask {
   bool successed;
   String log;
 
-  AutoTask(this.executeAt, this.demand, [this.executed = false, this.successed = false, this.log = ""]);
+  AutoTask(this.executeAt, this.demand,
+      [this.executed = false, this.successed = false, this.log = ""]);
 
   factory AutoTask.fromMap(Map<String, dynamic> map) => AutoTask(
         DateTime.fromMillisecondsSinceEpoch(map["executeAt"]),
@@ -20,8 +21,11 @@ class AutoTask {
         map["log"],
       );
 
-  static AutoTask? fromMapNullable(Map<String, dynamic>? map) =>
-      (map == null || !map.containsKey("executeAt") || !map.containsKey("demand")) ? null : AutoTask.fromMap(map);
+  static AutoTask? fromMapNullable(Map<String, dynamic>? map) => (map == null ||
+          !map.containsKey("executeAt") ||
+          !map.containsKey("demand"))
+      ? null
+      : AutoTask.fromMap(map);
 
   Map<String, dynamic> toMap() => {
         "executeAt": executeAt.millisecondsSinceEpoch,
@@ -46,7 +50,7 @@ class AutoTask {
         successed = t.successed,
         log = t.log;
 
-  static String get prompt => Constant.aiSystemPromptForAutoTask;
+  static String get prompt => "";
 
   AutoTaskState get state => executed
       ? successed
@@ -59,10 +63,13 @@ class AutoTask {
   AutoTask copy() => AutoTask(executeAt, demand, executed, successed, log);
 
   bool get executable => DateTime.now().difference(executeAt).inHours <= 1;
-  bool get shouldExecute => executable && !executed && DateTime.now().isAfter(executeAt);
+  bool get shouldExecute =>
+      executable && !executed && DateTime.now().isAfter(executeAt);
   @override
-  String toString() => "AutoTask(executeAt: $executeAt, demand: $demand, executed: $executed, successed: $successed, log: $log)";
-  String get demandWithCaveat => "$demand\n${Constant.aiSystemPromptForAutoTaskCaveat}";
+  String toString() =>
+      "AutoTask(executeAt: $executeAt, demand: $demand, executed: $executed, successed: $successed, log: $log)";
+  String get demandWithCaveat =>
+      "$demand\n${Constant.aiSystemPromptForAutoTaskCaveat}";
 
   // static final RegExp winPathRegex = RegExp(r'[A-Z]:\$?:[^\\/:*?"<>|\r\n]+\$*[^\\/:*?"<>|\r\n]+');
   // static final RegExp unixPathRegex = RegExp(r'\/(?:[^\/\000-\037]+\/)*[^\/\000-\037]+');

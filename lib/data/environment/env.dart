@@ -18,3 +18,12 @@ abstract class Env {
 }
 
 // dart run build_runner build
+
+// 调试方法：检查环境变量是否加载正确
+void debugEnv() {
+  print('🔍 环境变量调试信息:');
+  print('SUPA_URL: ${Env.supaUrl}');
+  print('SUPA_ANON: ${Env.supaAnon}');
+  print('SUPA_URL 是否为空: ${Env.supaUrl.isEmpty}');
+  print('SUPA_ANON 是否为空: ${Env.supaAnon.isEmpty}');
+}

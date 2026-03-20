@@ -23,7 +23,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
   bool expandTimePrecision = false;
 
   late int importance = widget.old?.importance ?? 0;
-  late final importanceController = TextEditingController(text: Helper.if_(importance != 0, importance.toString()));
+  late final importanceController = TextEditingController(
+      text: Helper.if_(importance != 0, importance.toString()));
 
   late int? startTimePrecision = widget.old?.startTimePrecision;
   late int? endTimePrecision = widget.old?.endTimePrecision;
@@ -31,15 +32,23 @@ class _EditTaskPageState extends State<EditTaskPage> {
   late DateTime? endTime = widget.old?.endTime;
   final dateController = TextEditingController();
 
-  late final controllers = widget.old?.paramAndInfo().map((e) => TextEditingController(text: e.$3)).toList() ??
-      List.generate(Task.inputFieldParams.length, (_) => TextEditingController());
+  late final controllers = widget.old
+          ?.paramAndInfo()
+          .map((e) => TextEditingController(text: e.$3))
+          .toList() ??
+      List.generate(
+          Task.inputFieldParams.length, (_) => TextEditingController());
   late final focusNodes = List.generate(controllers.length, (_) => FocusNode());
 
   late final List<DateTime> noticeTimes = widget.old?.noticeTimes ?? [];
   late final List<String> tags = widget.old?.tags ?? [];
 
   late final _timePrecisionList = [
-    ("开始时间精度:", () => startTimePrecision, (index) => startTimePrecision = index),
+    (
+      "开始时间精度:",
+      () => startTimePrecision,
+      (index) => startTimePrecision = index
+    ),
     ("结束时间精度:", () => endTimePrecision, (index) => endTimePrecision = index),
   ];
 
@@ -52,11 +61,12 @@ class _EditTaskPageState extends State<EditTaskPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final double expandTimePrecisionHeight = expandTimePrecision && startTime != null
-        ? endTime != null
-            ? 80
-            : 40
-        : 0;
+    final double expandTimePrecisionHeight =
+        expandTimePrecision && startTime != null
+            ? endTime != null
+                ? 80
+                : 40
+            : 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -82,18 +92,30 @@ class _EditTaskPageState extends State<EditTaskPage> {
   Form buildMain(double expandTimePrecisionHeight, ThemeData theme) {
     return Form(
       key: formKey,
-      child: ListView(
+      child: Column(
         children: [
-          for (final pcf in Helper.zip(Task.inputFieldParams, controllers, focusNodes)) buildTextField(pcf),
-          buildDateTime(),
-          buildDateTimePrecision(expandTimePrecisionHeight, theme),
-          buildImportance(),
-          buildNoticeTime(),
-          buildTags(),
-          if (widget.old?.source?.isNotEmpty ?? false) buildSource(),
-          if (widget.old?.content?.isNotEmpty ?? false) buildContent(),
-          SizedBox(height: 8),
-          buildFinish(),
+          Expanded(
+            child: ListView(
+              children: [
+                for (final pcf in Helper.zip(
+                    Task.inputFieldParams, controllers, focusNodes))
+                  buildTextField(pcf),
+                buildDateTime(),
+                buildDateTimePrecision(expandTimePrecisionHeight, theme),
+                buildImportance(),
+                buildNoticeTime(),
+                buildTags(),
+                if (widget.old?.source?.isNotEmpty ?? false) buildSource(),
+                if (widget.old?.content?.isNotEmpty ?? false) buildContent(),
+                SizedBox(height: 16),
+              ],
+            ),
+          ),
+          // 固定底部的提交按钮
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: buildFinish(),
+          ),
         ],
       ),
     );
@@ -183,7 +205,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
     );
   }
 
-  TextFormField buildTextField(((String, IconData, bool), TextEditingController, FocusNode?) pcf) {
+  TextFormField buildTextField(
+      ((String, IconData, bool), TextEditingController, FocusNode?) pcf) {
     return TextFormField(
       keyboardType: TextInputType.text,
       controller: pcf.$2,
@@ -195,7 +218,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
         labelText: pcf.$1.$1,
         border: UnderlineInputBorder(),
       ),
-      validator: Helper.if_(!pcf.$1.$3, (v) => Helper.if_(v == null || v.isEmpty, '请输入${pcf.$1.$1}')),
+      validator: Helper.if_(!pcf.$1.$3,
+          (v) => Helper.if_(v == null || v.isEmpty, '请输入${pcf.$1.$1}')),
     );
   }
 
@@ -228,7 +252,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
   TextFormField buildImportance() => TextFormField(
         autofocus: true,
         controller: importanceController,
-        keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+        keyboardType:
+            TextInputType.numberWithOptions(decimal: false, signed: false),
         onChanged: importanceTextChanged,
         validator: importanceTextValidator,
         decoration: InputDecoration(
@@ -245,7 +270,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
             )),
       );
 
-  AnimatedContainer buildDateTimePrecision(double expandTimePrecisionHeight, ThemeData theme) {
+  AnimatedContainer buildDateTimePrecision(
+      double expandTimePrecisionHeight, ThemeData theme) {
     return AnimatedContainer(
       duration: Durations.medium1,
       height: expandTimePrecisionHeight,
@@ -255,7 +281,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(height: 4),
-          for (final tp in _timePrecisionList.sublist(0, endTime != null ? 2 : 1))
+          for (final tp
+              in _timePrecisionList.sublist(0, endTime != null ? 2 : 1))
             SizedBox(
               height: 34,
               child: Row(
@@ -279,8 +306,11 @@ class _EditTaskPageState extends State<EditTaskPage> {
                             height: 32,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
-                              color: index == tp.$2() ? theme.colorScheme.inversePrimary : null,
-                              border: Border.all(color: theme.colorScheme.primary),
+                              color: index == tp.$2()
+                                  ? theme.colorScheme.inversePrimary
+                                  : null,
+                              border:
+                                  Border.all(color: theme.colorScheme.primary),
                             ),
                             child: Center(child: Text(s)),
                           ),
@@ -331,7 +361,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
                 label: Text(noticeTimes[index].formatWithPrecision(5)),
                 onPressed: () async {
                   clearTextFieldFocusNode();
-                  final r = await Helper.showDateTimePicker(context, initialDate: noticeTimes[index]);
+                  final r = await Helper.showDateTimePicker(context,
+                      initialDate: noticeTimes[index]);
                   if (r == null) return;
                   noticeTimes[index] = r;
                   setState(() {});

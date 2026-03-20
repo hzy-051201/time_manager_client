@@ -16,8 +16,10 @@ class WebCrawlerTasksBottomSheet extends StatelessWidget {
   final List<WebCrawlerTasks> wctasks;
   final Map<int, int> relvance;
 
-  const WebCrawlerTasksBottomSheet(this.web, this.wctasks, {super.key, this.relvance = const {}});
-  Future<Task?> show(BuildContext context) async => Helper.showModalBottomSheetSimple<Task>(context, this);
+  const WebCrawlerTasksBottomSheet(this.web, this.wctasks,
+      {super.key, this.relvance = const {}});
+  Future<Task?> show(BuildContext context) async =>
+      Helper.showModalBottomSheetSimple<Task>(context, this);
 
   @override
   Widget build(BuildContext context) {
@@ -94,10 +96,18 @@ class WebCrawlerTasksBottomSheet extends StatelessWidget {
               margin: EdgeInsets.all(8),
               child: ListTile(
                 leading: Icon(Icons.task_alt_sharp),
-                title: Text(wct.tasks.first.title, maxLines: 1),
-                subtitle: Text(wct.tasks.first.summary ?? "", maxLines: 2),
+                title: Text(
+                    wct.tasks.isNotEmpty ? wct.tasks.first.title : "无任务",
+                    maxLines: 1),
+                subtitle: Text(
+                    wct.tasks.isNotEmpty ? wct.tasks.first.summary ?? "" : "",
+                    maxLines: 2),
                 isThreeLine: true,
-                onTap: () => Get.to(() => EditTaskPage(old: wct.tasks.first)),
+                onTap: () {
+                  if (wct.tasks.isNotEmpty) {
+                    Get.to(() => EditTaskPage(old: wct.tasks.first));
+                  }
+                },
               ),
             ),
           ),
@@ -108,9 +118,15 @@ class WebCrawlerTasksBottomSheet extends StatelessWidget {
               child: InkWell(
                 child: Card(
                   margin: EdgeInsets.all(8),
-                  child: Center(child: Text("+${wct.tasks.length - 1}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                  child: Center(
+                      child: Text("+${wct.tasks.length - 1}",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold))),
                 ),
-                onTap: () => MultiTaskSelectorBottomSheet(tasks: wct.tasks, onSelected: (t) => Get.to(() => EditTaskPage(old: t))).show(context),
+                onTap: () => MultiTaskSelectorBottomSheet(
+                        tasks: wct.tasks,
+                        onSelected: (t) => Get.to(() => EditTaskPage(old: t)))
+                    .show(context),
               ),
             )
         ]),
@@ -139,14 +155,41 @@ class WebCrawlerTasksBottomSheet extends StatelessWidget {
   }
 
   static const relvanceTexts = ["无", "极低", "低", "中", "高", "极高"];
-  static const relvanceColors = [Colors.grey, Colors.lightGreen, Colors.green, Colors.yellow, Colors.orange, Colors.red];
+  static const relvanceColors = [
+    Colors.grey,
+    Colors.lightGreen,
+    Colors.green,
+    Colors.yellow,
+    Colors.orange,
+    Colors.red
+  ];
   Widget buildRelvanceBox(int relevance) => Container(
         padding: EdgeInsets.all(1),
         decoration: BoxDecoration(
-          color: relevance == 0 ? Colors.grey.withAlpha(32) : Colors.blue.withAlpha(32),
+          color: relevance == 0
+              ? Colors.grey.withAlpha(32)
+              : Colors.blue.withAlpha(32),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: relvanceColors[relevance], width: 0.5),
+          border: Border.all(color: _getRelevanceColor(relevance), width: 0.5),
         ),
-        child: Text("关联性: ${relvanceTexts[relevance]}", style: TextStyle(color: relvanceColors[relevance], fontSize: 10)),
+        child: Text("关联性: ${_getRelevanceText(relevance)}",
+            style:
+                TextStyle(color: _getRelevanceColor(relevance), fontSize: 10)),
       );
+
+  // 安全获取关联性文本
+  String _getRelevanceText(int relevance) {
+    if (relevance < 0 || relevance >= relvanceTexts.length) {
+      return "未知";
+    }
+    return relvanceTexts[relevance];
+  }
+
+  // 安全获取关联性颜色
+  Color _getRelevanceColor(int relevance) {
+    if (relevance < 0 || relevance >= relvanceColors.length) {
+      return Colors.grey;
+    }
+    return relvanceColors[relevance];
+  }
 }
