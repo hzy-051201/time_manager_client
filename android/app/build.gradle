@@ -8,8 +8,7 @@ plugins {
 android {
     namespace = "com.example.time_manager_client"
     compileSdk = flutter.compileSdkVersion
-    // 注释掉有问题的 NDK 配置
-    // ndkVersion = flutter.ndkVersion
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         coreLibraryDesugaringEnabled = true
