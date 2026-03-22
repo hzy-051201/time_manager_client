@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.time_manager_client"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
