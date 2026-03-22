@@ -15,7 +15,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.27.4
           cache: true
 
       - run: |
@@ -30,7 +30,11 @@ jobs:
           flutter --version
           flutter pub get
 
-      - run: echo -e "${{ secrets.ENV }}"  > .env
+      - run: |
+          echo "DS_KEY=${{ secrets.DS_KEY }}" > .env
+          echo "AMAP_KEY=${{ secrets.AMAP_KEY }}" >> .env
+          echo "SUPA_URL=${{ secrets.SUPA_URL }}" >> .env
+          echo "SUPA_ANON=${{ secrets.SUPA_ANON }}" >> .env
 
       - run: |
           mkdir dist
@@ -70,7 +74,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.27.4
           cache: true
 
       - run: |
@@ -106,7 +110,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.27.4
           cache: true
       
       - shell: bash
@@ -136,7 +140,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.27.4
           cache: true
       
       - run: echo -e "${{ secrets.ENV }}"  > .env
