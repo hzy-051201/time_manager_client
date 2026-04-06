@@ -34,11 +34,11 @@ jobs:
       # ✅ 这里我帮你提前了！先生成 .env，再构建！
       # ==============================================
       - run: |
-          echo "DS_KEY=${{ secrets.DS_KEY }}" > .env
-          echo "AMAP_KEY=${{ secrets.AMAP_KEY }}" >> .env
-          echo "SUPA_URL=${{ secrets.SUPA_URL }}" >> .env
-          echo "SUPA_ANON=${{ secrets.SUPA_ANON }}" >> .env
+          echo "DS_KEY=sk-34c089a3a7c14219a6282ff8e004780a" > .env
+          echo "AMAP_KEY=7fa1e4112323c82f3f588d14d84970a4" >> .env
           echo "AMAP_WEATHER_KEY=113a26741127c6d9e471612ffa5e1135" >> .env
+          echo "SUPA_URL=https://unjwofyrzunxxcfeejin.supabase.co" >> .env
+          echo "SUPA_ANON=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuandvZnlyenVueHhjZmVlamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjI4MzYsImV4cCI6MjA4OTM5ODgzNn0.41HCAe-RziEg42h8ksxzVbFH9XN3arCSmiRTCvsj3XA" >> .env
 
       - run: |
           mkdir dist
@@ -72,7 +72,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - run: echo -e "${{ secrets.ENV }}"  > .env
+      - run: |
+          echo "DS_KEY=sk-34c089a3a7c14219a6282ff8e004780a" > .env
+          echo "AMAP_KEY=7fa1e4112323c82f3f588d14d84970a4" >> .env
+          echo "AMAP_WEATHER_KEY=113a26741127c6d9e471612ffa5e1135" >> .env
+          echo "SUPA_URL=https://unjwofyrzunxxcfeejin.supabase.co" >> .env
+          echo "SUPA_ANON=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuandvZnlyenVueHhjZmVlamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjI4MzYsImV4cCI6MjA4OTM5ODgzNn0.41HCAe-RziEg42h8ksxzVbFH9XN3arCSmiRTCvsj3XA" >> .env
+
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -115,7 +121,13 @@ jobs:
           cache: true
       
       - shell: bash
-        run: echo -e "${{ secrets.ENV }}"  > .env
+        - run: |
+          echo "DS_KEY=sk-34c089a3a7c14219a6282ff8e004780a" > .env
+          echo "AMAP_KEY=7fa1e4112323c82f3f588d14d84970a4" >> .env
+          echo "AMAP_WEATHER_KEY=113a26741127c6d9e471612ffa5e1135" >> .env
+          echo "SUPA_URL=https://unjwofyrzunxxcfeejin.supabase.co" >> .env
+          echo "SUPA_ANON=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuandvZnlyenVueHhjZmVlamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjI4MzYsImV4cCI6MjA4OTM5ODgzNn0.41HCAe-RziEg42h8ksxzVbFH9XN3arCSmiRTCvsj3XA" >> .env
+
 
       - run: |
           mkdir dist
@@ -144,7 +156,13 @@ jobs:
           flutter-version: 3.27.4
           cache: true
       
-      - run: echo -e "${{ secrets.ENV }}"  > .env
+      - run: |
+          echo "DS_KEY=sk-34c089a3a7c14219a6282ff8e004780a" > .env
+          echo "AMAP_KEY=7fa1e4112323c82f3f588d14d84970a4" >> .env
+          echo "AMAP_WEATHER_KEY=113a26741127c6d9e471612ffa5e1135" >> .env
+          echo "SUPA_URL=https://unjwofyrzunxxcfeejin.supabase.co" >> .env
+          echo "SUPA_ANON=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuandvZnlyenVueHhjZmVlamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjI4MzYsImV4cCI6MjA4OTM5ODgzNn0.41HCAe-RziEg42h8ksxzVbFH9XN3arCSmiRTCvsj3XA" >> .env
+
 
       - run: npm install -g appdmg
 
