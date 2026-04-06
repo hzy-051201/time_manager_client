@@ -1,0 +1,236 @@
+name: Build Application
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-on-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.27.4
+          cache: true
+
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev locate rpm patchelf locate p7zip libfuse2
+
+          wget -O appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+          sudo mv appimagetool /usr/local/bin/
+
+      - run: |
+          flutter --version
+          flutter pub get
+
+      - run: |
+          echo "DS_KEY=${{ secrets.DS_KEY }}" > .env
+          echo "AMAP_KEY=${{ secrets.AMAP_KEY }}" >> .env
+          echo "SUPA_URL=${{ secrets.SUPA_URL }}" >> .env
+          echo "SUPA_ANON=${{ secrets.SUPA_ANON }}" >> .env
+
+      - run: |
+          mkdir dist
+          dart pub global activate flutter_distributor
+          dart run build_runner clean
+          dart run build_runner build -d 1 -r
+          dart run flutter_launcher_icons
+
+      - run: flutter_distributor package --platform linux --targets deb,rpm,appimage,zip --flutter-build-args=no-tree-shake-icons
+      - run: flutter build web --no-tree-shake-icons --release
+
+      - run: ls -la dist/*/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release_linux
+          path: dist/*/*.*
+
+      # 上传 Github Page
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'build/web'
+
+  build-on-linux-for-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - run: echo -e "${{ secrets.ENV }}"  > .env
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.27.4
+          cache: true
+
+      - run: |
+          flutter --version
+          flutter pub get
+
+      - run: |
+          dart run build_runner clean
+          dart run build_runner build -d 1 -r
+          dart run flutter_launcher_icons
+
+      - run: flutter build apk --release --split-per-abi --no-tree-shake-icons 
+      - run: flutter build apk --release --no-tree-shake-icons 
+      - run: flutter build appbundle --release --no-tree-shake-icons 
+
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release_android
+          path: build/app/outputs/flutter-apk/*.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release_android_aab
+          path: build/app/outputs/bundle/release/app-release.aab
+
+
+  build-on-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.27.4
+          cache: true
+      
+      - shell: bash
+        run: echo -e "${{ secrets.ENV }}"  > .env
+
+      - run: |
+          mkdir dist
+          dart pub global activate flutter_distributor
+          dart run build_runner clean
+          dart run build_runner build -d 1 -r
+          dart run flutter_launcher_icons
+                    
+      - run: flutter_distributor package --platform windows --targets exe,msix --flutter-build-args=no-tree-shake-icons
+
+      - run: ls dist/*/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release_windows
+          path: dist/*/*.*
+
+  build-on-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.27.4
+          cache: true
+      
+      - run: echo -e "${{ secrets.ENV }}"  > .env
+
+      - run: npm install -g appdmg
+
+      - run: |
+          mkdir dist
+          dart pub global activate flutter_distributor
+          dart run build_runner clean
+          dart run build_runner build -d 1 -r
+          dart run flutter_launcher_icons
+                    
+      - run: flutter_distributor package --platform macos --targets dmg,pkg --flutter-build-args=no-tree-shake-icons
+      # - run: flutter build ipa --release --export-method ad-hoc
+      - run: ls -la dist/*/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release_macos
+          path: dist/*/*.*
+
+  deploy-page:
+    runs-on: ubuntu-latest
+    needs: build-on-linux
+    if: github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  pre-release:
+    runs-on: ubuntu-latest
+    needs: [build-on-linux, build-on-windows, build-on-macos, build-on-linux-for-android]
+    if: github.ref != 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: ls -R
+
+      - name: Get tag
+        id: tag
+        uses: dawidd6/action-get-tag@v1
+        # with:
+        #   # Optionally strip `v` prefix
+        #   strip_v: true
+
+      - run: |
+          mv ./release_android/app-arm64-v8a-release.apk   release-${{steps.tag.outputs.tag}}-android-arm64-v8a.apk
+          mv ./release_android/app-armeabi-v7a-release.apk release-${{steps.tag.outputs.tag}}-android-armeabi-v7a.apk
+          mv ./release_android/app-x86_64-release.apk      release-${{steps.tag.outputs.tag}}-android-x86_64.apk
+          mv ./release_android/app-release.apk             release-${{steps.tag.outputs.tag}}-android-universal.apk
+
+          mv ./release_android_aab/app-release.aab         release-${{steps.tag.outputs.tag}}-android.aab
+
+          mv ./release_linux/*/*.AppImage                  release-${{steps.tag.outputs.tag}}-linux.AppImage
+          mv ./release_linux/*/*.deb                       release-${{steps.tag.outputs.tag}}-linux.deb
+          mv ./release_linux/*/*.rpm                       release-${{steps.tag.outputs.tag}}-linux.rpm
+          mv ./release_linux/*/*.zip                       release-${{steps.tag.outputs.tag}}-linux.zip
+
+          mv ./release_macos/*/*.dmg                       release-${{steps.tag.outputs.tag}}-macos.dmg
+          mv ./release_macos/*/*.pkg                       release-${{steps.tag.outputs.tag}}-macos.pkg
+
+          mv ./release_windows/*/*.exe                     release-${{steps.tag.outputs.tag}}-windows.exe
+          mv ./release_windows/*/*.msix                    release-${{steps.tag.outputs.tag}}-windows.msix
+
+      - run: ls -lR
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref }}
+          name: Release ${{ github.ref }}
+          body: New Pre-Release.
+          draft: false
+          prerelease: true
+          files: release-*.*

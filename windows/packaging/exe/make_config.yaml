@@ -1,0 +1,10 @@
+# AppId 的值唯一标识此应用。
+app_id: e29c6e6f-e00d-46a8-95aa-4ab5b9dd78db
+publisher: Zinc
+publisher_url: https://todo.zinc233.top
+display_name: 时间管理助手
+create_desktop_icon: true
+# See: https://jrsoftware.org/ishelp/index.php?topic=setup_defaultdirname
+# install_dir_name: "D:\\HELLO-WORLD"
+locales:
+  - en

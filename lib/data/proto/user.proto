@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package time_manager;
+
+message User {
+    int64 id = 1;
+
+    
+    repeated UserAccount accounts = 10;
+    optional string prompt = 11;
+
+}
+
+message UserAccount {
+    string account = 1;
+    UserAccountType type = 2;
+}
+
+enum UserAccountType {
+    UNKNOWN = 0;
+    PHONE = 1;
+    WECHAT_OPENID = 2;
+}

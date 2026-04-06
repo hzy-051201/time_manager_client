@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package time_manager;
+
+message AutoTask {
+    int64  executeAt = 1;
+    string demand    = 2;
+    bool   executed  = 3;
+    bool   successed = 4;
+    string log       = 5;
+}

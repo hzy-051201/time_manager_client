@@ -1,0 +1,11 @@
+{
+    "cmake.ignoreCMakeListsMissing": true,
+    "protoc": {
+        "compile_on_save": true,
+        "options": [
+            "--proto_path=${workspaceRoot}/lib/data/proto",
+            "--dart_out=${workspaceRoot}/lib/data/proto.gen",
+        ]
+    },
+
+}

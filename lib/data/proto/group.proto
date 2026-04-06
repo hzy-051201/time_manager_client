@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package time_manager;
+
+message Group {
+    string         title = 1;
+    string         icon  = 2;
+    repeated int64 taskIds = 3;
+
+    int64 updateTimestampAt = 100;
+}

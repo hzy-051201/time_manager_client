@@ -1,0 +1,1 @@
+typedef LatLng = (double, double);

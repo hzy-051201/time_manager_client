@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package time_manager;
+
+import "task.proto";
+import "group.proto";
+import "user.proto";
+
+message Storage {
+    map<uint64, Task> tasks = 1;
+    map<uint64, Group> groups = 2;
+    repeated uint64 groupIds = 3;
+    uint64 currentGroupId = 4;
+    optional User user = 5;
+}

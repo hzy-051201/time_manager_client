@@ -1,0 +1,30 @@
+display_name: 时间管理助手
+package_name: todo-manager
+maintainer:
+  name: Zinc
+  email: zinc233@qq.com
+# co_authors:
+#   - name: Kingkor Roy Tirtho
+#     email: krtirtho@gmail.com
+priority: optional
+section: x11
+installed_size: 6604
+essential: false
+icon: assets/icon/ic_app.png
+
+postinstall_scripts:
+  - echo "安装成功：时间管理助手"
+postuninstall_scripts:
+  - echo "卸载成功：时间管理助手"
+
+keywords:
+  - Todo
+  - Time
+  - Application
+
+generic_name: 时间管理助手
+
+categories:
+  - utils
+
+startup_notify: true
