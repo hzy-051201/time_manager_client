@@ -35,6 +35,7 @@ jobs:
           echo "AMAP_KEY=${{ secrets.AMAP_KEY }}" >> .env
           echo "SUPA_URL=${{ secrets.SUPA_URL }}" >> .env
           echo "SUPA_ANON=${{ secrets.SUPA_ANON }}" >> .env
+          echo "AMAP_WEATHER_KEY=${{ secrets.AMAP_WEATHER_KEY }}" >> .env
 
       - run: |
           mkdir dist
