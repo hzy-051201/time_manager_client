@@ -30,9 +30,7 @@ jobs:
           flutter --version
           flutter pub get
 
-      # ==============================================
-      # ✅ 这里我帮你提前了！先生成 .env，再构建！
-      # ==============================================
+      # 统一生成 .env（全平台一致）
       - run: |
           echo "DS_KEY=sk-34c089a3a7c14219a6282ff8e004780a" > .env
           echo "AMAP_KEY=7fa1e4112323c82f3f588d14d84970a4" >> .env
@@ -57,6 +55,7 @@ jobs:
           name: release_linux
           path: dist/*/*.*
 
+      # 上传 Github Page
       - name: Setup Pages
         uses: actions/configure-pages@v5
       
@@ -72,13 +71,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ✅ 已修改！替换了错误的 secrets.ENV
       - run: |
           echo "DS_KEY=sk-34c089a3a7c14219a6282ff8e004780a" > .env
           echo "AMAP_KEY=7fa1e4112323c82f3f588d14d84970a4" >> .env
           echo "AMAP_WEATHER_KEY=113a26741127c6d9e471612ffa5e1135" >> .env
           echo "SUPA_URL=https://unjwofyrzunxxcfeejin.supabase.co" >> .env
           echo "SUPA_ANON=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuandvZnlyenVueHhjZmVlamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjI4MzYsImV4cCI6MjA4OTM5ODgzNn0.41HCAe-RziEg42h8ksxzVbFH9XN3arCSmiRTCvsj3XA" >> .env
-
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -120,14 +119,14 @@ jobs:
           flutter-version: 3.27.4
           cache: true
       
+      # ✅ 已修改！替换了错误的 secrets.ENV
       - shell: bash
-        - run: |
+        run: |
           echo "DS_KEY=sk-34c089a3a7c14219a6282ff8e004780a" > .env
           echo "AMAP_KEY=7fa1e4112323c82f3f588d14d84970a4" >> .env
           echo "AMAP_WEATHER_KEY=113a26741127c6d9e471612ffa5e1135" >> .env
           echo "SUPA_URL=https://unjwofyrzunxxcfeejin.supabase.co" >> .env
           echo "SUPA_ANON=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuandvZnlyenVueHhjZmVlamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjI4MzYsImV4cCI6MjA4OTM5ODgzNn0.41HCAe-RziEg42h8ksxzVbFH9XN3arCSmiRTCvsj3XA" >> .env
-
 
       - run: |
           mkdir dist
@@ -156,13 +155,13 @@ jobs:
           flutter-version: 3.27.4
           cache: true
       
+      # ✅ 已修改！替换了错误的 secrets.ENV
       - run: |
           echo "DS_KEY=sk-34c089a3a7c14219a6282ff8e004780a" > .env
           echo "AMAP_KEY=7fa1e4112323c82f3f588d14d84970a4" >> .env
           echo "AMAP_WEATHER_KEY=113a26741127c6d9e471612ffa5e1135" >> .env
           echo "SUPA_URL=https://unjwofyrzunxxcfeejin.supabase.co" >> .env
           echo "SUPA_ANON=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuandvZnlyenVueHhjZmVlamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjI4MzYsImV4cCI6MjA4OTM5ODgzNn0.41HCAe-RziEg42h8ksxzVbFH9XN3arCSmiRTCvsj3XA" >> .env
-
 
       - run: npm install -g appdmg
 
