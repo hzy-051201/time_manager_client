@@ -88,8 +88,24 @@ class _WebCrawlerPageState extends State<WebCrawlerPage> {
       final tasks = await remoteDb.getWebCrawlerTasks(web.id);
 
       if (tasks.isNotEmpty) {
+        // 加载关联性数据
+        final controller = Get.find<DataController>();
+        final remoteDb = RemoteDb.instance;
+        final relevance = controller.user != null
+            ? (await remoteDb.getWebCrawlerRelvance(controller.user!.id))
+                .cast<int, int>()
+            : <int, int>{};
+
+        // 按关联性排序（从高到低）
+        tasks.sort((a, b) {
+          final relA = relevance[a.id] ?? -1;
+          final relB = relevance[b.id] ?? -1;
+          return relB.compareTo(relA); // 降序排列
+        });
+
         // 使用现有的BottomSheet组件显示任务列表
-        await WebCrawlerTasksBottomSheet(web, tasks).show(context);
+        await WebCrawlerTasksBottomSheet(web, tasks, relvance: relevance)
+            .show(context);
       } else {
         Get.snackbar('提示', '该爬虫配置还没有任务数据');
       }
