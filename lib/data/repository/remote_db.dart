@@ -250,7 +250,14 @@ class RemoteDb {
         .from("relevance_of_ctask_and_user")
         .select("ctaskId, relevance")
         .eq("userId", userId);
-    return {for (final l in d) l["ctaskId"]: l["relevance"]};
+    // 显式类型转换，确保返回Map<int, int>
+    final Map<int, int> result = {};
+    for (final l in d) {
+      final ctaskId = l["ctaskId"] as int;
+      final relevance = l["relevance"] as int;
+      result[ctaskId] = relevance;
+    }
+    return result;
   }
 
   // 启动爬虫
