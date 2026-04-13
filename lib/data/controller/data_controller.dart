@@ -185,7 +185,7 @@ class DataController extends GetxController {
 
   // 尝试获取当前位置距任务的目标点距离
   final _deviceLocation = Location();
-  
+
   // 天气相关
   final _weatherInfo = Rx<WeatherInfo?>(null);
   final _weatherSuggestion = Rx<String?>(null);
@@ -197,6 +197,18 @@ class DataController extends GetxController {
 
   Future<double?> getTaskDistance(Task task) async {
     try {
+      // 检查位置权限
+      if ((await _deviceLocation.hasPermission()) == PermissionStatus.denied) {
+        await _deviceLocation.requestPermission();
+      }
+
+      if (await _deviceLocation.hasPermission() == PermissionStatus.denied ||
+          await _deviceLocation.hasPermission() ==
+              PermissionStatus.deniedForever) {
+        logger.e('位置权限被拒绝');
+        return null;
+      }
+
       final locr =
           await _deviceLocation.getLocation().timeout(Duration(seconds: 10));
       logger.d("r loc: $locr");
@@ -635,13 +647,13 @@ class DataController extends GetxController {
   /// [city] 城市名称，如果为null则尝试根据当前位置获取
   Future<void> initWeather([String? city]) async {
     if (_weatherLoading.value) return;
-    
+
     _weatherLoading.value = true;
     update();
-    
+
     try {
       WeatherInfo? weather;
-      
+
       if (city != null && city.isNotEmpty) {
         // 使用指定城市获取天气
         weather = await NetworkWeather.getCurrentWeather(city);
@@ -649,33 +661,49 @@ class DataController extends GetxController {
       } else {
         // 尝试根据当前位置获取天气
         try {
-          final loc = await _deviceLocation.getLocation().timeout(
-            const Duration(seconds: 10),
-          );
-          if (loc.latitude != null && loc.longitude != null) {
-            // 转换为GCJ-02坐标系
-            final gcj02 = CoordinateHelper.wgs84ToGcj02(
-              loc.latitude!,
-              loc.longitude!,
-            );
-            weather = await NetworkWeather.getCurrentWeatherByLocation(
-              gcj02.$1,
-              gcj02.$2,
-            );
-            _weatherCity = weather?.city;
+          // 检查位置权限
+          if ((await _deviceLocation.hasPermission()) ==
+              PermissionStatus.denied) {
+            await _deviceLocation.requestPermission();
+          }
+
+          if (await _deviceLocation.hasPermission() ==
+                  PermissionStatus.denied ||
+              await _deviceLocation.hasPermission() ==
+                  PermissionStatus.deniedForever) {
+            logger.e('位置权限被拒绝');
+            // 权限被拒绝，使用默认城市
+            weather = await NetworkWeather.getCurrentWeather('南京');
+            _weatherCity = '南京';
+          } else {
+            final loc = await _deviceLocation.getLocation().timeout(
+                  const Duration(seconds: 10),
+                );
+            if (loc.latitude != null && loc.longitude != null) {
+              // 转换为GCJ-02坐标系
+              final gcj02 = CoordinateHelper.wgs84ToGcj02(
+                loc.latitude!,
+                loc.longitude!,
+              );
+              weather = await NetworkWeather.getCurrentWeatherByLocation(
+                gcj02.$1,
+                gcj02.$2,
+              );
+              _weatherCity = weather?.city;
+            }
           }
         } catch (e) {
           logger.e('获取位置失败: $e');
           // 如果获取位置失败，使用默认城市
-          weather = await NetworkWeather.getCurrentWeather('北京');
-          _weatherCity = '北京';
+          weather = await NetworkWeather.getCurrentWeather('南京');
+          _weatherCity = '南京';
         }
       }
-      
+
       if (weather != null) {
         _weatherInfo.value = weather;
         _weatherSuggestion.value = NetworkWeather.getWeatherSuggestion(weather);
-        
+
         // 缓存天气数据（1小时有效）
         Box.simpleData.write(
           'weather_data',
@@ -694,7 +722,9 @@ class DataController extends GetxController {
             }),
             'suggestion': _weatherSuggestion.value,
             'city': _weatherCity,
-            'expireAt': DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch,
+            'expireAt': DateTime.now()
+                .add(const Duration(hours: 1))
+                .millisecondsSinceEpoch,
           }),
         );
       }
@@ -715,8 +745,9 @@ class DataController extends GetxController {
       if (cached != null) {
         final data = jsonDecode(cached);
         final expireAt = data['expireAt'] as int?;
-        
-        if (expireAt != null && DateTime.now().millisecondsSinceEpoch < expireAt) {
+
+        if (expireAt != null &&
+            DateTime.now().millisecondsSinceEpoch < expireAt) {
           final weatherData = jsonDecode(data['data']);
           _weatherInfo.value = WeatherInfo(
             main: weatherData['main'],
@@ -752,11 +783,11 @@ class DataController extends GetxController {
     if (_weatherInfo.value == null) {
       await initWeather();
     }
-    
+
     if (_weatherInfo.value == null) {
       return null;
     }
-    
+
     // 获取今天的任务
     final today = DateTime.now();
     final todayTasks = rawTask.values.where((task) {
@@ -769,18 +800,18 @@ class DataController extends GetxController {
       final todayDate = DateTime(today.year, today.month, today.day);
       return taskDate.isAtSameMomentAs(todayDate);
     }).toList();
-    
+
     // 如果没有任务，返回基础建议
     if (todayTasks.isEmpty) {
       return _weatherSuggestion.value;
     }
-    
+
     // 获取出差类任务
     final travelTasks = todayTasks.where((task) {
-      return task.tags.contains('旅行') || 
-             task.location != null && task.location!.isNotEmpty;
+      return task.tags.contains('旅行') ||
+          task.location != null && task.location!.isNotEmpty;
     }).toList();
-    
+
     // 构建AI提示
     final weather = _weatherInfo.value!;
     final prompt = '''现在是${DateTime.now().toString()}，今天${weather.city}的天气情况：
@@ -790,11 +821,7 @@ class DataController extends GetxController {
 - 风速：${weather.windSpeed.toStringAsFixed(1)}m/s
 
 用户今天有以下任务：
-${todayTasks.asMap().entries.map((entry) => 
-  '${entry.key + 1}. ${entry.value.title}' +
-  (entry.value.location != null ? '（地点：${entry.value.location}）' : '') +
-  (entry.value.startTime != null ? '（时间：${entry.value.startTimeWithPrecision}）' : '')
-).join('\n')}
+${todayTasks.asMap().entries.map((entry) => '${entry.key + 1}. ${entry.value.title}' + (entry.value.location != null ? '（地点：${entry.value.location}）' : '') + (entry.value.startTime != null ? '（时间：${entry.value.startTimeWithPrecision}）' : '')).join('\n')}
 
 ${travelTasks.isNotEmpty ? '特别关注：用户有出差/出行类任务，请重点考虑天气对出行的影响。' : '请关注天气对户外活动的影响。'}''';
 
@@ -804,7 +831,7 @@ ${travelTasks.isNotEmpty ? '特别关注：用户有出差/出行类任务，请
         Constant.aiSystemPromptForWeatherSuggestion,
         AiModel.deepseekChat,
       );
-      
+
       if (suggestion != null && suggestion.isNotEmpty) {
         _weatherSuggestion.value = suggestion;
         return suggestion;
@@ -812,7 +839,7 @@ ${travelTasks.isNotEmpty ? '特别关注：用户有出差/出行类任务，请
     } catch (e) {
       logger.e('获取天气建议失败: $e');
     }
-    
+
     return _weatherSuggestion.value;
   }
 }
